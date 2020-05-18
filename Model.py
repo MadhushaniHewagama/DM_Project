@@ -836,34 +836,33 @@ plt.show()
 train_y_csv.head(n=5)
 
 
-# In[312]:
+# In[142]:
 
 
 train_csv1=train_x_csv.copy()
 train_csv2=train_x_csv.copy()
 
 
-# In[313]:
+# In[143]:
 
 
 train_csv1["h1n1_vaccine"]=train_y_csv["h1n1_vaccine"]
-train_csv1.drop(['seasonal_vaccine'],axis=1,inplace=True)
 
 
-# In[314]:
+# In[144]:
 
 
 train_csv2["seasonal_vaccine"]=train_y_csv["seasonal_vaccine"]
-train_csv2.drop(['h1n1_vaccine'],axis=1,inplace=True)
+train_csv2.drop(['h1n1_concern','h1n1_knowledge','doctor_recc_h1n1'],axis=1,inplace=True)
 
 
-# In[317]:
+# In[145]:
 
 
 train_csv2.head(n=5)
 
 
-# In[318]:
+# In[146]:
 
 
 from sklearn.model_selection import train_test_split
@@ -873,7 +872,7 @@ x1_train,x1_test,y1_train,y1_test = train_test_split(train_csv1.drop('h1n1_vacci
                                                  random_state=123)
 
 
-# In[319]:
+# In[147]:
 
 
 from sklearn.model_selection import train_test_split
@@ -883,41 +882,13 @@ x2_train,x2_test,y2_train,y2_test = train_test_split(train_csv2.drop('seasonal_v
                                                  random_state=123)
 
 
-# In[320]:
+# In[148]:
 
 
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 
 
-# In[321]:
-
-
-lr = LogisticRegression()
-lr.fit(x1_train,y1_train)
-y1_pred_lr = lr.predict(x1_test)
-
-
-# In[322]:
-
-
-lr.fit(x2_train,y2_train)
-y2_pred_lr = lr.predict(x2_test)
-
-
-# In[323]:
-
-
-print('The h1n1 accuracy of the Logistic Regression is',round(accuracy_score(y1_pred_lr,y1_test)*100,2))
-
-
-# In[324]:
-
-
-print('The seasonal vaccine accuracy of the Logistic Regression is',round(accuracy_score(y2_pred_lr,y2_test)*100,2))
-
-
-# In[325]:
+# In[149]:
 
 
 import keras
@@ -926,7 +897,7 @@ from keras.layers import Dense, Dropout, Activation
 from keras.optimizers import SGD
 
 
-# In[326]:
+# In[150]:
 
 
 def baselineNN(dims):
@@ -940,7 +911,7 @@ def baselineNN(dims):
     return model
 
 
-# In[327]:
+# In[151]:
 
 
 def use_keras_nn_model(x, y, xx, yy, epochs):
@@ -950,44 +921,26 @@ def use_keras_nn_model(x, y, xx, yy, epochs):
     return y_pred, model
 
 
-# In[328]:
+# In[153]:
 
 
-y1_pred_nn, model_nn1 = use_keras_nn_model(x1_train, y1_train, x1_test, y1_test, 100)
+y1_pred_nn, model_nn1 = use_keras_nn_model(x1_train, y1_train, x1_test, y1_test, 500)
 
 
-# In[329]:
+# In[154]:
 
 
-y2_pred_nn, model_nn2 = use_keras_nn_model(x2_train, y2_train, x2_test, y2_test, 100)
+y2_pred_nn, model_nn2 = use_keras_nn_model(x2_train, y2_train, x2_test, y2_test, 500)
 
 
-# In[330]:
-
-
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
-
-
-lr = LogisticRegression()
-lr.fit(x2_train,y2_train)
-y2_pred_lr = lr.predict(x2_test)
-
-
-# In[331]:
-
-
-print('The accuracy of the Logistic Regression is',round(accuracy_score(y2_pred_lr,y2_test)*100,2))
-
-
-# In[332]:
+# In[155]:
 
 
 import xgboost as xgb
 from xgboost import plot_importance
 
 
-# In[333]:
+# In[156]:
 
 
 params = {
@@ -1007,7 +960,7 @@ params = {
 num_round = 10
 
 
-# In[334]:
+# In[157]:
 
 
 d1train = xgb.DMatrix(x1_train, label=y1_train)
@@ -1017,335 +970,324 @@ bst = xgb.train(params, d1train, num_round, watchlist)
 y1_pred_xgb = bst.predict(d1test)
 
 
-# In[335]:
+# In[158]:
 
 
 plot_importance(bst)
 
 
-# In[336]:
+# In[159]:
 
 
 train_csv1.isnull().sum()
 
 
-# In[337]:
+# In[160]:
 
 
 test_csv.isnull().sum()
 
 
-# In[338]:
+# In[161]:
 
 
 imp.fit(test_csv[['h1n1_concern']])
 test_csv[['h1n1_concern']]=imp.transform(test_csv[['h1n1_concern']])
 
 
-# In[339]:
+# In[162]:
 
 
 imp.fit(test_csv[['h1n1_knowledge']])
 test_csv[['h1n1_knowledge']]=imp.transform(test_csv[['h1n1_knowledge']])
 
 
-# In[340]:
+# In[163]:
 
 
 imp.fit(test_csv[['behavioral_antiviral_meds']])
 test_csv[['behavioral_antiviral_meds']]=imp.transform(test_csv[['h1n1_knowledge']])
 
 
-# In[341]:
+# In[164]:
 
 
 imp.fit(test_csv[['behavioral_avoidance']])
 test_csv[['behavioral_avoidance']]=imp.transform(test_csv[['behavioral_avoidance']])
 
 
-# In[342]:
+# In[165]:
 
 
 imp.fit(test_csv[['behavioral_face_mask']])
 test_csv[['behavioral_face_mask']]=imp.transform(test_csv[['behavioral_face_mask']])
 
 
-# In[343]:
+# In[166]:
 
 
 imp.fit(test_csv[['behavioral_wash_hands']])
 test_csv[['behavioral_wash_hands']]=imp.transform(test_csv[['behavioral_wash_hands']])
 
 
-# In[344]:
+# In[167]:
 
 
 imp.fit(test_csv[['behavioral_large_gatherings']])
 test_csv[['behavioral_large_gatherings']]=imp.transform(test_csv[['behavioral_large_gatherings']])
 
 
-# In[345]:
+# In[168]:
 
 
 imp.fit(test_csv[['behavioral_outside_home']])
 test_csv[['behavioral_outside_home']]=imp.transform(test_csv[['behavioral_outside_home']])
 
 
-# In[346]:
+# In[169]:
 
 
 imp.fit(test_csv[['behavioral_touch_face']])
 test_csv[['behavioral_touch_face']]=imp.transform(test_csv[['behavioral_touch_face']])
 
 
-# In[347]:
+# In[170]:
 
 
 imp.fit(test_csv[['doctor_recc_h1n1']])
 test_csv[['doctor_recc_h1n1']]=imp.transform(test_csv[['doctor_recc_h1n1']])
 
 
-# In[348]:
+# In[171]:
 
 
 imp.fit(test_csv[['doctor_recc_seasonal']])
 test_csv[['doctor_recc_seasonal']]=imp.transform(test_csv[['doctor_recc_seasonal']])
 
 
-# In[349]:
+# In[172]:
 
 
 imp.fit(test_csv[['chronic_med_condition']])
 test_csv[['chronic_med_condition']]=imp.transform(test_csv[['chronic_med_condition']])
 
 
-# In[350]:
+# In[173]:
 
 
 imp.fit(test_csv[['child_under_6_months']])
 test_csv[['child_under_6_months']]=imp.transform(test_csv[['child_under_6_months']])
 
 
-# In[351]:
+# In[174]:
 
 
 imp.fit(test_csv[['health_worker']])
 test_csv[['health_worker']]=imp.transform(test_csv[['health_worker']])
 
 
-# In[352]:
+# In[175]:
 
 
 imp.fit(test_csv[['health_insurance']])
 test_csv[['health_insurance']]=imp.transform(test_csv[['health_insurance']])
 
 
-# In[353]:
+# In[176]:
 
 
 imp.fit(test_csv[['opinion_h1n1_vacc_effective']])
 test_csv[['opinion_h1n1_vacc_effective']]=imp.transform(test_csv[['opinion_h1n1_vacc_effective']])
 
 
-# In[354]:
+# In[177]:
 
 
 imp.fit(test_csv[['opinion_h1n1_risk']])
 test_csv[['opinion_h1n1_risk']]=imp.transform(test_csv[['opinion_h1n1_risk']])
 
 
-# In[355]:
+# In[178]:
 
 
 imp.fit(test_csv[['opinion_h1n1_sick_from_vacc']])
 test_csv[['opinion_h1n1_sick_from_vacc']]=imp.transform(test_csv[['opinion_h1n1_sick_from_vacc']])
 
 
-# In[356]:
+# In[179]:
 
 
 imp.fit(test_csv[['opinion_seas_vacc_effective']])
 test_csv[['opinion_seas_vacc_effective']]=imp.transform(test_csv[['opinion_seas_vacc_effective']])
 
 
-# In[357]:
+# In[180]:
 
 
 imp.fit(test_csv[['opinion_seas_risk']])
 test_csv[['opinion_seas_risk']]=imp.transform(test_csv[['opinion_seas_risk']])
 
 
-# In[358]:
+# In[181]:
 
 
 imp.fit(test_csv[['opinion_seas_sick_from_vacc']])
 test_csv[['opinion_seas_sick_from_vacc']]=imp.transform(test_csv[['opinion_seas_sick_from_vacc']])
 
 
-# In[359]:
+# In[182]:
 
 
 imp.fit(test_csv[['education']])
 test_csv[['education']]=imp.transform(test_csv[['education']])
 
 
-# In[360]:
+# In[183]:
 
 
 imp.fit(test_csv[['income_poverty']])
 test_csv[['income_poverty']]=imp.transform(test_csv[['income_poverty']])
 
 
-# In[361]:
+# In[184]:
 
 
 imp.fit(test_csv[['marital_status']])
 test_csv[['marital_status']]=imp.transform(test_csv[['marital_status']])
 
 
-# In[362]:
+# In[185]:
 
 
 imp.fit(test_csv[['rent_or_own']])
 test_csv[['rent_or_own']]=imp.transform(test_csv[['rent_or_own']])
 
 
-# In[363]:
+# In[186]:
 
 
 imp.fit(test_csv[['employment_status']])
 test_csv[['employment_status']]=imp.transform(test_csv[['employment_status']])
 
 
-# In[364]:
+# In[187]:
 
 
 imp.fit(test_csv[['household_adults']])
 test_csv[['household_adults']]=imp.transform(test_csv[['household_adults']])
 
 
-# In[365]:
+# In[188]:
 
 
 imp.fit(test_csv[['household_children']])
 test_csv[['household_children']]=imp.transform(test_csv[['household_children']])
 
 
-# In[366]:
+# In[189]:
 
 
 imp.fit(test_csv[['employment_industry']])
 test_csv[['employment_industry']]=imp.transform(test_csv[['employment_industry']])
 
 
-# In[367]:
+# In[190]:
 
 
 imp.fit(test_csv[['employment_occupation']])
 test_csv[['employment_occupation']]=imp.transform(test_csv[['employment_occupation']])
 
 
-# In[368]:
-
-
-convert_columns_to_numeric(test_csv)
-
-
-# In[369]:
+# In[191]:
 
 
 test_csv.isnull().sum()
 
 
-# In[370]:
+# In[192]:
+
+
+convert_columns_to_numeric(test_csv)
+
+
+# In[193]:
 
 
 final_df=test_csv.copy()
 final_df.drop(['respondent_id'],axis=1,inplace=True)
 
 
-# In[371]:
+# In[194]:
 
 
 final_df=final_df.astype(int)
 
 
-# In[372]:
+# In[195]:
 
 
 final_df.head(n=5)
 
 
-# In[373]:
+# In[197]:
 
 
-len(x2_train.columns)
+len(x1_train.columns)
 
 
-# In[374]:
+# In[199]:
 
 
 final_df.columns
 
 
-# In[375]:
+# In[200]:
 
 
 y1_final_prob = model_nn1.predict(final_df.as_matrix()).reshape(final_df.shape[0],)
 
 
-# In[376]:
+# In[201]:
 
 
 print(y1_final_prob)
 
 
-# In[377]:
+# In[202]:
 
 
-def throttling(arr, thres):
-    #res = arr.copy()
-    res = np.zeros(len(arr))
-    res[arr >= thres] = int(1)
-    res[arr < thres] = int(0)
-    return res
+final_df.drop(['h1n1_concern','h1n1_knowledge','doctor_recc_h1n1'],axis=1,inplace=True)
 
 
-# In[378]:
-
-
-#y1_final = throttling(y1_final_prob, .6)
-
-
-# In[381]:
+# In[203]:
 
 
 y2_final_prob = model_nn2.predict(final_df.as_matrix()).reshape(final_df.shape[0],)
 
 
-# In[382]:
-
-
-print(y2_final_prob)
-
-
-# In[383]:
+# In[204]:
 
 
 #y2_final = throttling(y2_final_prob, .6)
 
 
-# In[384]:
+# In[205]:
 
 
 submission = pd.concat([test_csv['respondent_id'], pd.DataFrame(y1_final_prob), pd.DataFrame(y2_final_prob)], axis=1)
 submission.columns = ['tripid', 'h1n1_vaccine',"seasonal_vaccine"]
 
 
-# In[386]:
+# In[207]:
 
 
 submission.to_csv('submission.csv', encoding='utf-8', index = False)
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
